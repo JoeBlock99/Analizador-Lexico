@@ -352,79 +352,87 @@ class AnalisisLexico():
             values3[keys3.index(n)] = '^' + values3[keys3.index(n)] + '$'
         
         print("\n\n")
-        
-        import re
-        from functools import reduce
-        from itertools import accumulate
 
-        chrline = chr(219)
-        blank = ' '
+        scannerFile = ''
+        scannerFile = f""" 
+import re
+from functools import reduce
+from itertools import accumulate
+from tkinter import Tk     # from tkinter import Tk for Python 3.x
+from tkinter.filedialog import askopenfilename
 
-        keywords = dict(zip(values2, keys2))
-        tokens = dict(zip(keys3, values3))
-        
-        compiler_defines_blank = reduce(lambda cummulative, current : cummulative or bool(re.match(current[1], blank)), tokens.items(), False)
-        start = 0
-        forward = 0
-        isConsulting = False
-        output = ''
+def scanner():
+    chrline = chr(219)
+    blank = ' '
 
-        print('Please enter the file to analize')
-        text_file = askopenfilename()
-        text_in_file = ''
-        with open(text_file, 'r') as reader:
-            for line in reader:
-                for n in line:
-                    if n != '\n':
-                        text_in_file += n
-                    else:
-                        text_in_file += chrline
-        
-        for index in range(len(text_in_file) + 1):
-            if index == start: isConsulting = True
-            temporary = text_in_file[start:forward]
-            print(temporary)
-            if temporary in keywords and (not reduce(lambda cummulative, current : cummulative or bool(re.match(current[1], text_in_file[start:forward + 1])), [*tokens.items(), *keywords.keys()], False)):
-                output += f"{keywords[temporary]} "
-                # print('keyword found')
-                start = index
-                isConsulting = False
-            elif not compiler_defines_blank and temporary == blank:
-                start = index
-                isConsulting = False
-            elif temporary == chrline:
-                start = index
-                isConsulting = False
-            else:
-                for key, value in tokens.items():
-                    if temporary and re.match(value, temporary):
-                        temp = [character for character in text_in_file[forward:]]
-                        res = list(accumulate(temp, lambda x, y: "".join([x, y])))
-                        remainder_stream = [f"{temporary}{element}" for element in res]
-                        strMatch = lambda string : reduce(lambda accumulator, current: accumulator or re.fullmatch(current[1], string), [*tokens.items(), *keywords.keys()], False)
-                        stillMatching = reduce(lambda accumulator, current: accumulator or strMatch(current), remainder_stream, False)
-                        
-                        if not stillMatching:
-                            print(key)
-                            output += '{} '.format(key)
-                            start = index
-                            isConsulting = False
-                            break
-            forward += 1
-        
-        if isConsulting:
-            print('ERROR LEXICO')
-            print(start)
-            print(len(text_in_file))
-            return {
-                'output': 'Error lexico'
-            }
+    keywords = {dict(zip(values2, keys2))}
+    tokens = {dict(zip(keys3, values3))}
+
+    compiler_defines_blank = reduce(lambda cummulative, current : cummulative or bool(re.match(current[1], blank)), tokens.items(), False)
+    start = 0
+    forward = 0
+    isConsulting = False
+    output = ''
+
+    print('Please enter the file to analize')
+    text_file = askopenfilename()
+    text_in_file = ''
+    with open(text_file, 'r') as reader:
+        for line in reader:
+            for n in line:
+                if n != '\\n':
+                    text_in_file += n
+                else:
+                    text_in_file += chrline
+
+    for index in range(len(text_in_file) + 1):
+        if index == start: isConsulting = True
+        temporary = text_in_file[start:forward]
+        if temporary in keywords and (not reduce(lambda cummulative, current : cummulative or bool(re.match(current[1], text_in_file[start:forward + 1])), [*tokens.items(), *keywords.keys()], False)):
+            output += f"{{keywords[temporary]}} "
+            start = index
+            isConsulting = False
+        elif not compiler_defines_blank and temporary == blank:
+            start = index
+            isConsulting = False
+        elif temporary == chrline:
+            start = index
+            isConsulting = False
         else:
-            print(output, file=open('output.txt', 'a'))
-            return {
-                'output': output,
-                'residue': temporary
-            }
+            for key, value in tokens.items():
+                if temporary and re.match(value, temporary):
+                    temp = [character for character in text_in_file[forward:]]
+                    res = list(accumulate(temp, lambda x, y: "".join([x, y])))
+                    remainder_stream = [f"{{temporary}}{{element}}" for element in res]
+                    strMatch = lambda string : reduce(lambda accumulator, current: accumulator or re.fullmatch(current[1], string), [*tokens.items(), *keywords.keys()], False)
+                    stillMatching = reduce(lambda accumulator, current: accumulator or strMatch(current), remainder_stream, False)
+                    
+                    if not stillMatching:
+                        print("<",temporary,">", ":", key)
+                        output += '{{}} '.format(key)
+                        start = index
+                        isConsulting = False
+                        break
+        forward += 1
+
+    if isConsulting:
+        print('ERROR LEXICO')
+        print(start)
+        print(len(text_in_file))
+        return {{
+            'output': 'Error lexico'
+        }}
+    else:
+        print(output, file=open('output.txt', 'a'))
+        return {{
+            'output': output,
+            'residue': temporary
+        }}
+scanner()
+        """
+        file = open("./scanner.py", "x")
+        file.write(scannerFile)
+        file.close()
 
                         
 
